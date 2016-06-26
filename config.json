@@ -1,0 +1,42 @@
+{
+  "timeout" : 60,
+  "timeout_video" : 600,
+
+  "debug" : true,
+
+  "rfid" : {
+    "name_block" : 4,
+    "data_block" : 8,
+    "puzzle_data_tries_byte" : 0,
+    "puzzle_data_complete_byte" : 1,
+    "puzzle_data_size" : 2
+  },
+
+  "puzzles" :
+  {
+    "checkin" :
+    {
+      "id": 0
+    },
+    "lights" :
+    {
+      "id": 1
+    },
+    "speech" :
+    {
+      "id": 2
+    }
+  },
+
+  "videos" : [
+    {
+      "name" : "video1",
+      "threshold" : 0,
+      "path" : "/home/pi/test_movies/video1.mp4"
+    },
+    {
+    "name" : "video2",
+    "threshold" : 1,
+    "path" : "/home/pi/test_movies/video2.mp4"
+  }]
+}

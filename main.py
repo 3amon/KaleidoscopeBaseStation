@@ -87,7 +87,7 @@ def play_video_for_user(player):
 
 
 def play():
-    rfid_data = gevent.with_timeout(BASE_STATION_TASK_TIMEOUT, wait_for_rfid)
+    rfid_data = gevent.spawn(wait_for_rfid).get()
     user = gevent.with_timeout(BASE_STATION_TASK_TIMEOUT, lookup_or_add_user, rfid_data)
     gevent.with_timeout(BASE_STATION_VIDEO_TIMEOUT, play_video_for_user, user)
 

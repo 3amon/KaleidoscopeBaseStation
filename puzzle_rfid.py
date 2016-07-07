@@ -4,7 +4,6 @@ from config import config
 
 MIFAREReader = MFRC522.MFRC522()
 
-
 def write_player_data(rfid_data):
     # Scan for cards
     (status, TagType) = MIFAREReader.MFRC522_Request(MIFAREReader.PICC_REQIDL)

@@ -61,7 +61,7 @@ class Player:
     def get_puzzle_count(self):
         count = 0
         for name, [complete, tries] in self.puzzles.iteritems():
-            if tries > 0:
+            if complete > 0:
                 count += 1
         return count
 

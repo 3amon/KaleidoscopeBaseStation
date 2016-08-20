@@ -57,6 +57,8 @@ def update_rfid_card(player):
     print("Writing to player RFID")
     print player.get_rfid_data()
     while not puzzle_rfid.write_player_data(player.get_rfid_data()):
+        lcd_i2c.lcd_string("Retag", lcd_i2c.LCD_LINE_1)
+        lcd_i2c.lcd_string("your card", lcd_i2c.LCD_LINE_2)
         gevent.sleep(0.1)
 
 def lookup_player(rfid_data):
@@ -149,12 +151,6 @@ def get_initial_choice(keyboard_obj):
             return True
         elif(choice == '2'):
             return False
-
-def add_player(name, initial_choice_past, uid):
-
-    add_or_update_player(player)
-    return player
-
 
 def play(keyboard_obj):
 

@@ -61,7 +61,11 @@ def get_cap_state(keyboard):
 def watch_keyboard():
     keyboard = get_keyboard()
     if not config["debug"]:
-        keyboard.grab()
+        try:
+            keyboard.grab()
+        except IOError:
+            keyboard.ungrab()
+            keyboard.grab()
     while True:
         event = keyboard.read_one()
         if event and event.type == evdev.ecodes.EV_KEY:
@@ -74,7 +78,7 @@ def watch_keyboard():
                     key_lookup = key_lookup.lower()
 
                 key_event_queue.put_nowait(key_lookup)
-        gevent.sleep(0)
+        gevent.sleep(0.1)
 
 # start watching the keyboard
 gevent.spawn(watch_keyboard)

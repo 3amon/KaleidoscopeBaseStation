@@ -2,7 +2,7 @@
   "timeout" : 60,
   "timeout_video" : 600,
 
-  "debug" : true,
+  "debug" : false,
 
   "rfid" : {
     "name_block" : 4,
@@ -32,11 +32,11 @@
     {
       "name" : "video1",
       "threshold" : 0,
-      "path" : "/home/pi/test_movies/video1.mp4"
+      "path" : "/home/pi/KaleidoscopeBaseStation/movies/laptop.mp4"
     },
     {
     "name" : "video2",
     "threshold" : 1,
-    "path" : "/home/pi/test_movies/video2.mp4"
+    "path" : "/home/pi/KaleidoscopeBaseStation/movies/laptop.mp4"
   }]
 }

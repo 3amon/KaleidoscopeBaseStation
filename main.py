@@ -26,7 +26,7 @@ def wait_for_rfid():
     print("Waiting for RFID")
     while not rfid_data:
         rfid_data = puzzle_rfid.read_player_data()
-        gevent.sleep(0)
+        gevent.sleep(0.5)
 
     return rfid_data
 
@@ -35,7 +35,8 @@ def create_user(uid):
     lcd_i2c.lcd_string("Enter name:", lcd_i2c.LCD_LINE_1)
     key = None
     name = ''
-    keyboard.key_event_queue.empty()
+    while(not keyboard.key_event_queue.empty()):
+        keyboard.key_event_queue.get()
     while key != 'CRLF':
         key = keyboard.key_event_queue.get()
         if key == 'BKSP':

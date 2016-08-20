@@ -73,7 +73,7 @@ class Player:
 
         name_byte_array = [0] * 16
         for i in range(min(16, len(self.name))):
-            name_byte_array[i] = self.name[i]
+            name_byte_array[i] = ord(self.name[i])
 
         puzzle_byte_array = [0] * 16
         for name, [complete, tries] in self.puzzles.iteritems():

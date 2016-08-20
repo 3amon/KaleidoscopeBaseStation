@@ -62,7 +62,7 @@ def update_rfid_card(player):
     print("Writing to player RFID")
     print player.get_rfid_data()
     while not puzzle_rfid.write_player_data(player.get_rfid_data()):
-        gevent.sleep(0)
+        gevent.sleep(0.1)
 
 def lookup_or_add_user(rfid_data):
     print rfid_data

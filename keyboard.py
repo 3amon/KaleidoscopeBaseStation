@@ -78,7 +78,7 @@ def watch_keyboard():
                     key_lookup = key_lookup.lower()
 
                 key_event_queue.put_nowait(key_lookup)
-        gevent.sleep(0.1)
+        gevent.sleep(0.01)
 
 # start watching the keyboard
 gevent.spawn(watch_keyboard)

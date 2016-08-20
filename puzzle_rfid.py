@@ -17,7 +17,7 @@ def write_player_data(rfid_data):
 
     # If we have the UID, continue
     if status != MIFAREReader.MI_OK:
-        raise Exception("Write Failure!")
+        return False
 
     # This is the default key for authentication
     key = [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
@@ -25,18 +25,28 @@ def write_player_data(rfid_data):
     # Select the scanned tag
     MIFAREReader.MFRC522_SelectTag(uid)
 
+    name_block = int(config['rfid']['name_block'])
+    data_block = int(config['rfid']['data_block'])
+
     # Authenticate
-    status = MIFAREReader.MFRC522_Auth(MIFAREReader.PICC_AUTHENT1A, 8, key, uid)
+    status = MIFAREReader.MFRC522_Auth(MIFAREReader.PICC_AUTHENT1A, 4, key, uid)
 
     # Check if authenticated
     if status != MIFAREReader.MI_OK:
-        raise Exception("Write Failure!")
+        return False
 
-    name_block = config['rfid']['name_block']
-    data_block = config['rfid']['data_block']
+    if(not MIFAREReader.MFRC522_Write(name_block, rfid_data[name_block])):
+        return False
 
-    MIFAREReader.MFRC522_Write(data_block, rfid_data[data_block])
-    MIFAREReader.MFRC522_Write(name_block, rfid_data[name_block])
+    # Authenticate
+    status = MIFAREReader.MFRC522_Auth(MIFAREReader.PICC_AUTHENT1A, name_block, key, uid)
+
+    # Check if authenticated
+    if status != MIFAREReader.MI_OK:
+        return False
+
+    if(not MIFAREReader.MFRC522_Write(data_block, rfid_data[data_block])):
+        return False
 
     MIFAREReader.MFRC522_StopCrypto1()
 

@@ -6,7 +6,7 @@
 
   "rfid" : {
     "name_block" : 4,
-    "data_block" : 8,
+    "data_block" : 5,
     "puzzle_data_tries_byte" : 0,
     "puzzle_data_complete_byte" : 1,
     "puzzle_data_size" : 2

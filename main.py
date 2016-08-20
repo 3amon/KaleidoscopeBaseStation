@@ -46,6 +46,7 @@ def get_keyboard_entry(keyboard_obj, prompt, max_len):
                 if len(name) < max_len:
                     name += key
             lcd_i2c.lcd_string(name, lcd_i2c.LCD_LINE_2)
+        gevent.sleep(0.01)
     return name
 
 def add_or_update_player(player):
@@ -150,8 +151,9 @@ def get_initial_choice(keyboard_obj):
             return False
 
 def add_player(name, initial_choice_past, uid):
-    player = Player(name= name, uid = uid, initial_choice_past=initial_choice_past)
+
     add_or_update_player(player)
+    return player
 
 
 def play(keyboard_obj):
@@ -168,7 +170,10 @@ def play(keyboard_obj):
         lcd_i2c.display_on()
         name = gevent.with_timeout(BASE_STATION_VIDEO_TIMEOUT, get_keyboard_entry, keyboard_obj, "Enter name:", 16)
         initial_choice_past = gevent.with_timeout(BASE_STATION_VIDEO_TIMEOUT, get_initial_choice, keyboard_obj)
-        gevent.with_timeout(BASE_STATION_VIDEO_TIMEOUT, add_player, name, initial_choice_past, rfid_data["uid"])
+        player = Player(name=name, uid=rfid_data["uid"], initial_choice_past=initial_choice_past)
+        gevent.with_timeout(BASE_STATION_TASK_TIMEOUT, update_rfid_card, player)
+        gevent.with_timeout(BASE_STATION_VIDEO_TIMEOUT, add_or_update_player, player)
+
 
     lcd_i2c.display_off()
 

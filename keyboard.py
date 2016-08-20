@@ -1,7 +1,5 @@
 import evdev
-import gevent
 from config import config
-from gevent.queue import Queue
 import string
 
 # we are going to just list every key we care about
@@ -44,8 +42,6 @@ def get_keyboard():
 
     return None
 
-key_event_queue = Queue()
-
 def get_cap_state(keyboard):
     result = False
     if 'KEY_LEFTSHIFT' in mapFirstElement(keyboard.active_keys(verbose = True)) or \
@@ -57,28 +53,22 @@ def get_cap_state(keyboard):
 
     return result
 
+def keyboard_check_updates(keyboard_obj):
+    event = keyboard_obj.read_one()
+    if event and event.type == evdev.ecodes.EV_KEY:
+        key = evdev.KeyEvent(event)
+        if key.keystate == evdev.KeyEvent.key_down:
 
-def watch_keyboard():
-    keyboard = get_keyboard()
+            key_lookup = scancodes.get(key.scancode) or 'INVALID'
+            if key_lookup in string.ascii_uppercase and not get_cap_state(keyboard_obj):
+                key_lookup = key_lookup.lower()
+
+            return key_lookup
+    return None
+
+def grab_keyboard():
+    keyboard_obj = get_keyboard()
     if not config["debug"]:
-        try:
-            keyboard.grab()
-        except IOError:
-            keyboard.ungrab()
-            keyboard.grab()
-    while True:
-        event = keyboard.read_one()
-        if event and event.type == evdev.ecodes.EV_KEY:
-            key = evdev.KeyEvent(event)
-            if key.keystate == evdev.KeyEvent.key_down:
+        keyboard_obj.grab()
 
-                key_lookup = scancodes.get(key.scancode) or 'INVALID'
-
-                if key_lookup in string.ascii_uppercase and not get_cap_state(keyboard):
-                    key_lookup = key_lookup.lower()
-
-                key_event_queue.put_nowait(key_lookup)
-        gevent.sleep(0.01)
-
-# start watching the keyboard
-gevent.spawn(watch_keyboard)
+    return keyboard_obj

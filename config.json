@@ -9,7 +9,9 @@
     "data_block" : 5,
     "puzzle_data_tries_byte" : 0,
     "puzzle_data_complete_byte" : 1,
-    "puzzle_data_size" : 2
+    "puzzle_data_size" : 2,
+    "past_choice_count_byte" : 14,
+    "present_choice_count_byte" : 15
   },
 
   "puzzles" :
@@ -27,6 +29,8 @@
       "id": 2
     }
   },
+
+  "puzzle_win_treshold" : 0,
 
   "videos" : [
     {

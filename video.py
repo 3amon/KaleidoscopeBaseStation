@@ -9,8 +9,10 @@ This strategy will not attempt to show a user a video they have not seen."""
 OMX_PLAYER_PATH = '/usr/bin/omxplayer'
 
 def choose_video(player):
-    puzzle_count = player.get_puzzle_count()
-    print "Puzzle Count:", puzzle_count
+    puzzle_count = 0
+    if(player):
+        puzzle_count = player.get_puzzle_count()
+
     threshold = -1
     user_video = None
 

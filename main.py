@@ -30,32 +30,26 @@ def wait_for_rfid():
 
     return rfid_data
 
-def create_user(uid):
-    lcd_i2c.display_on()
-    lcd_i2c.lcd_string("Enter name:", lcd_i2c.LCD_LINE_1)
+def get_keyboard_entry(keyboard_obj, prompt, max_len):
+    lcd_i2c.lcd_string(prompt, lcd_i2c.LCD_LINE_1)
     key = None
     name = ''
-    while(not keyboard.key_event_queue.empty()):
-        keyboard.key_event_queue.get()
+    lcd_i2c.lcd_string(name, lcd_i2c.LCD_LINE_2)
     while key != 'CRLF':
-        key = keyboard.key_event_queue.get()
-        if key == 'BKSP':
-            name = name[:-1]
-        elif key in keyboard.nonprintable:
-            pass
-        else:
-            if len(name) < 16:
-                name += key
-        lcd_i2c.lcd_string(name, lcd_i2c.LCD_LINE_2)
-    lcd_i2c.display_off()
-    return Player(name = name, uid = uid)
+        key = keyboard.keyboard_check_updates(keyboard_obj)
+        if(key):
+            if key == 'BKSP':
+                name = name[:-1]
+            elif key in keyboard.nonprintable:
+                pass
+            else:
+                if len(name) < max_len:
+                    name += key
+            lcd_i2c.lcd_string(name, lcd_i2c.LCD_LINE_2)
+    return name
 
-def add_or_update_player(player, db_obj = None):
-    if not db_obj:
-        print("Adding " + player.name + " to the database!")
-    else:
-        print("Updating: " + player.name + " in the database!")
-    session.add(player.get_db_obj(db_obj))
+def add_or_update_player(player):
+    session.add(player.get_db_obj())
     session.commit()
 
 def update_rfid_card(player):
@@ -64,20 +58,15 @@ def update_rfid_card(player):
     while not puzzle_rfid.write_player_data(player.get_rfid_data()):
         gevent.sleep(0.1)
 
-def lookup_or_add_user(rfid_data):
-    print rfid_data
+def lookup_player(rfid_data):
     print("Looking up " + rfid_data["uid"])
     player_db = session.query(PlayerDbObj).filter_by(uid = rfid_data["uid"]).one_or_none()
     if not player_db:
-        print("Creating user " + str(rfid_data["uid"]))
-        player = create_user(rfid_data["uid"])
-        update_rfid_card(player)
-        add_or_update_player(player)
-        return player
+        return None
     else:
         player = Player(db_obj=player_db)
         player.update_user(rfid_data)
-        add_or_update_player(player, player_db)
+        add_or_update_player(player)
         return player
 
 def play_video_for_user(player):
@@ -86,19 +75,110 @@ def play_video_for_user(player):
     else:
         video.play_video(video.choose_video(player)["path"])
 
+def check_win_condition(player):
+    if(player.get_puzzle_count() >= config["puzzle_win_treshold"]):
+        print "Removing player from database!"
+        player.clear_uid()
+        add_or_update_player(player)
+        if(player.past_choice_count > player.present_choice_count):
+            lines = [
+                ################
+                ["You're stuck",
+                 "in the past"]
+            ]
+            for line in lines:
+                lcd_i2c.lcd_string(line(0), lcd_i2c.LCD_LINE_1)
+                lcd_i2c.lcd_string(line(1), lcd_i2c.LCD_LINE_2)
+                gevent.sleep(2000)
+        else:
+            lines = [
+                ################
+                ["You're riding",
+                 "the wave of"],
+                ["the future",
+                 ""]
+            ]
+            for line in lines:
+                lcd_i2c.lcd_string(line[0], lcd_i2c.LCD_LINE_1)
+                lcd_i2c.lcd_string(line[1], lcd_i2c.LCD_LINE_2)
+                gevent.sleep(2)
+            pass;
+    else:
+        if(player.get_puzzle_count() > 0):
+            lines = [
+                ################
+                ["Come back when",
+                 "you have"],
+                ["discovered",
+                 "more secrets!"]
+            ]
+            for line in lines:
+                lcd_i2c.lcd_string(line[0], lcd_i2c.LCD_LINE_0)
+                lcd_i2c.lcd_string(line[1], lcd_i2c.LCD_LINE_1)
+                gevent.sleep(2)
+            pass;
 
-def play():
+def play_video_for_new_user():
+    if config["debug"]:
+        print "Playing video : " + video.choose_video(None)["name"]
+    else:
+        video.play_video(video.choose_video(None)["path"])
+
+def get_initial_choice(keyboard_obj):
+    while(True):
+        lines = [
+            ################
+            ["You see...",
+             "    ...a fork"],
+            ["1) Dinner time",
+             ""],
+            ["2) The road",
+             "less traveled"]
+        ]
+
+        for line in lines:
+            lcd_i2c.lcd_string(line[0], lcd_i2c.LCD_LINE_1)
+            lcd_i2c.lcd_string(line[1], lcd_i2c.LCD_LINE_2)
+            gevent.sleep(2)
+        pass;
+
+        choice = get_keyboard_entry(keyboard_obj, "Select choice: ", 1)
+
+        if(choice == '1'):
+            return True
+        elif(choice == '2'):
+            return False
+
+def add_player(name, initial_choice_past, uid):
+    player = Player(name= name, uid = uid, initial_choice_past=initial_choice_past)
+    add_or_update_player(player)
+
+
+def play(keyboard_obj):
+
     rfid_data = gevent.spawn(wait_for_rfid).get()
-    user = gevent.with_timeout(BASE_STATION_TASK_TIMEOUT, lookup_or_add_user, rfid_data)
-    gevent.with_timeout(BASE_STATION_VIDEO_TIMEOUT, play_video_for_user, user)
+    player = gevent.with_timeout(BASE_STATION_TASK_TIMEOUT, lookup_player, rfid_data)
 
+    if(player):
+        gevent.with_timeout(BASE_STATION_VIDEO_TIMEOUT, play_video_for_user, player)
+        lcd_i2c.display_on()
+        gevent.with_timeout(BASE_STATION_TASK_TIMEOUT, check_win_condition, player)
+    else:
+        gevent.with_timeout(BASE_STATION_VIDEO_TIMEOUT, play_video_for_new_user)
+        lcd_i2c.display_on()
+        name = gevent.with_timeout(BASE_STATION_VIDEO_TIMEOUT, get_keyboard_entry, keyboard_obj, "Enter name:", 16)
+        initial_choice_past = gevent.with_timeout(BASE_STATION_VIDEO_TIMEOUT, get_initial_choice, keyboard_obj)
+        gevent.with_timeout(BASE_STATION_VIDEO_TIMEOUT, add_player, name, initial_choice_past, rfid_data["uid"])
+
+    lcd_i2c.display_off()
 
 if __name__ == "__main__":
     lcd_i2c.lcd_init()
     lcd_i2c.display_off()
+    keyboard_obj = keyboard.grab_keyboard()
     while True:
         try:
-            play()
+            play(keyboard_obj)
         except gevent.Timeout:
             print('Could not complete in timeout!')
             exit(1)

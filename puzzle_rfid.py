@@ -73,18 +73,18 @@ def read_player_data():
     # Select the scanned tag
     MIFAREReader.MFRC522_SelectTag(uid)
 
+    data_block = config['rfid']['data_block']
+
     # Authenticate
-    status = MIFAREReader.MFRC522_Auth(MIFAREReader.PICC_AUTHENT1A, 8, key, uid)
+    status = MIFAREReader.MFRC522_Auth(MIFAREReader.PICC_AUTHENT1A, data_block, key, uid)
 
     # Check if authenticated
     if status != MIFAREReader.MI_OK:
         raise Exception("Read Failure!")
 
-    data_block = config['rfid']['data_block']
-    puzzle_data_puzzle_size = config['rfid']['puzzle_data_size']
-    total_puzzle_size = puzzle_data_puzzle_size * len(config['puzzles'])
+    block_size = 16
 
-    puzzle_byte_array = [0] * total_puzzle_size
+    puzzle_byte_array = [0] * block_size
 
     # Reading a single block for puzzle data
     # If we need to do more here, we will

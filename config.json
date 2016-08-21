@@ -16,21 +16,37 @@
 
   "puzzles" :
   {
-    "checkin" :
+    "grime" :
     {
       "id": 0
     },
-    "lights" :
+    "periodic" :
     {
       "id": 1
     },
-    "speech" :
+    "pongo" :
     {
       "id": 2
+    },
+    "spatial" :
+    {
+      "id": 3
+    },
+    "eggsbar" :
+    {
+      "id": 4
+    },
+    "tower" :
+    {
+      "id": 5
+    },
+    "softlanding" :
+    {
+      "id": 6
     }
   },
 
-  "puzzle_win_treshold" : 0,
+  "puzzle_win_treshold" : 1,
 
   "videos" : [
     {
@@ -41,6 +57,6 @@
     {
     "name" : "video2",
     "threshold" : 1,
-    "path" : "/home/pi/KaleidoscopeBaseStation/movies/laptop.mp4"
+    "path" : "/home/pi/KaleidoscopeBaseStation/movies/blablabla.MOV"
   }]
 }

@@ -17,7 +17,7 @@ def write_player_data(rfid_data):
 
     # If we have the UID, continue
     if status != MIFAREReader.MI_OK:
-        return False
+        return None
 
     # This is the default key for authentication
     key = [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
@@ -33,20 +33,20 @@ def write_player_data(rfid_data):
 
     # Check if authenticated
     if status != MIFAREReader.MI_OK:
-        return False
+        return None
 
     if(not MIFAREReader.MFRC522_Write(name_block, rfid_data[name_block])):
-        return False
+        return None
 
     # Authenticate
     status = MIFAREReader.MFRC522_Auth(MIFAREReader.PICC_AUTHENT1A, name_block, key, uid)
 
     # Check if authenticated
     if status != MIFAREReader.MI_OK:
-        return False
+        return None
 
     if(not MIFAREReader.MFRC522_Write(data_block, rfid_data[data_block])):
-        return False
+        return None
 
     MIFAREReader.MFRC522_StopCrypto1()
 
@@ -65,7 +65,7 @@ def read_player_data():
 
     # If we have the UID, continue
     if status != MIFAREReader.MI_OK:
-        raise Exception("Read Failure!")
+        return None
 
     # This is the default key for authentication
     key = [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
@@ -80,7 +80,7 @@ def read_player_data():
 
     # Check if authenticated
     if status != MIFAREReader.MI_OK:
-        raise Exception("Read Failure!")
+        return None
 
     block_size = 16
 
@@ -90,7 +90,7 @@ def read_player_data():
     # If we need to do more here, we will
     data = MIFAREReader.MFRC522_Read(data_block)
     if not data:
-        raise Exception("Read Failure!")
+        return None
 
     MIFAREReader.MFRC522_StopCrypto1()
 

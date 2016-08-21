@@ -16,7 +16,7 @@ BASE_STATION_TASK_TIMEOUT = config['timeout']
 BASE_STATION_VIDEO_TIMEOUT = config['timeout_video']
 
 # Initialze the postgresql database driver
-engine = create_engine(os.environ['KAL_DB_PATH'])
+engine = create_engine("postgresql://pi:raspberry@127.0.0.1:5432")
 Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)
 session = Session()
@@ -83,16 +83,16 @@ def check_win_condition(player):
         print "Removing player from database!"
         player.clear_uid()
         add_or_update_player(player)
-        if(player.past_choice_count > player.present_choice_count):
+        if(player.past_choice_count >= player.present_choice_count):
             lines = [
                 ################
                 ["You're stuck",
                  "in the past"]
             ]
             for line in lines:
-                lcd_i2c.lcd_string(line(0), lcd_i2c.LCD_LINE_1)
-                lcd_i2c.lcd_string(line(1), lcd_i2c.LCD_LINE_2)
-                gevent.sleep(2000)
+                lcd_i2c.lcd_string(line[0], lcd_i2c.LCD_LINE_1)
+                lcd_i2c.lcd_string(line[1], lcd_i2c.LCD_LINE_2)
+                gevent.sleep(2)
         else:
             lines = [
                 ################

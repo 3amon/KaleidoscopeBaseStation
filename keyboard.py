@@ -1,6 +1,7 @@
 import evdev
 from config import config
 import string
+from subprocess import call
 
 # we are going to just list every key we care about
 scancodes = {
@@ -67,7 +68,9 @@ def keyboard_check_updates(keyboard_obj):
     return None
 
 def grab_keyboard():
+
     keyboard_obj = get_keyboard()
+    call(["sudo", "killall", "dbus-daemon"])
     if not config["debug"]:
         keyboard_obj.grab()
 

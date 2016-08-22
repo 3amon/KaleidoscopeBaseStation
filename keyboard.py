@@ -15,7 +15,7 @@ scancodes = {
 
 nonprintable = [
     'LSHFT',
-    'RSHIFT',
+    'RSHFT',
     'CRLF',
     'BKSP',
     'INVALID'

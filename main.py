@@ -9,6 +9,7 @@ import puzzle_rfid
 from config import config
 import keyboard
 import os
+from arduinoSerial import ser
 
 # Constants
 DEBUG_MODE = 1
@@ -57,8 +58,8 @@ def update_rfid_card(player):
     print("Writing to player RFID")
     print player.get_rfid_data()
     while not puzzle_rfid.write_player_data(player.get_rfid_data()):
-        lcd_i2c.lcd_string("Retag", lcd_i2c.LCD_LINE_1)
-        lcd_i2c.lcd_string("your card", lcd_i2c.LCD_LINE_2)
+        lcd_i2c.lcd_string("Please verify", lcd_i2c.LCD_LINE_1)
+        lcd_i2c.lcd_string("your amulet", lcd_i2c.LCD_LINE_2)
         gevent.sleep(0.1)
 
 def lookup_player(rfid_data):
@@ -76,7 +77,9 @@ def play_video_for_user(player):
     if config["debug"]:
         print "Playing video : " + video.choose_video(player)["name"]
     else:
+        ser.write(b"O")
         video.play_video(video.choose_video(player)["path"])
+        ser.write(b"F")
 
 def check_win_condition(player):
     if(player.get_puzzle_count() >= config["puzzle_win_treshold"]):
@@ -86,71 +89,90 @@ def check_win_condition(player):
         if(player.past_choice_count >= player.present_choice_count):
             lines = [
                 ################
-                ["You're stuck",
-                 "in the past"]
+                ["Go to ",
+                 "Kaleidoscope"],
+                ["Coffeeshop ",
+                 "when open"],
+                ["and ask",
+                 "barista:"],
+                ["\"Do you feel the",
+                 "mirrors today?\""]
             ]
             for line in lines:
                 lcd_i2c.lcd_string(line[0], lcd_i2c.LCD_LINE_1)
                 lcd_i2c.lcd_string(line[1], lcd_i2c.LCD_LINE_2)
-                gevent.sleep(2)
+                gevent.sleep(4)
         else:
             lines = [
                 ################
-                ["You're riding",
-                 "the wave of"],
-                ["the future",
-                 ""]
+                ["Go to 4:30 & B",
+                 "and climb tower"]
             ]
             for line in lines:
                 lcd_i2c.lcd_string(line[0], lcd_i2c.LCD_LINE_1)
                 lcd_i2c.lcd_string(line[1], lcd_i2c.LCD_LINE_2)
-                gevent.sleep(2)
+                gevent.sleep(8)
             pass;
     else:
-        if(player.get_puzzle_count() > 0):
+        if(player.get_puzzle_count() >= 0):
             lines = [
                 ################
                 ["Come back when",
                  "you have"],
-                ["discovered",
-                 "more secrets!"]
+                ["completed",
+                 "more quests."]
             ]
             for line in lines:
-                lcd_i2c.lcd_string(line[0], lcd_i2c.LCD_LINE_0)
-                lcd_i2c.lcd_string(line[1], lcd_i2c.LCD_LINE_1)
-                gevent.sleep(2)
+                lcd_i2c.lcd_string(line[0], lcd_i2c.LCD_LINE_1)
+                lcd_i2c.lcd_string(line[1], lcd_i2c.LCD_LINE_2)
+                gevent.sleep(4)
             pass;
 
 def play_video_for_new_user():
     if config["debug"]:
         print "Playing video : " + video.choose_video(None)["name"]
     else:
+        ser.write(b"O")
         video.play_video(video.choose_video(None)["path"])
+        ser.write(b"F")
 
 def get_initial_choice(keyboard_obj):
+    lines = [
+        ################
+        ["Read passage",
+         "and answer"],
+        ["wisely, as your",
+         "choices may"],
+        ["change your",
+         "destiny."]
+    ]
+    for line in lines:
+        lcd_i2c.lcd_string(line[0], lcd_i2c.LCD_LINE_1)
+        lcd_i2c.lcd_string(line[1], lcd_i2c.LCD_LINE_2)
+        gevent.sleep(4)
+    pass;
+    
     while(True):
         lines = [
             ################
-            ["You see...",
-             "    ...a fork"],
-            ["1) Dinner time",
-             ""],
-            ["2) The road",
-             "less traveled"]
+            ["Do you burn",
+             "the receipt?"],
+            ["1. Burn receipt",
+             "2. Keep receipt"]
         ]
 
         for line in lines:
             lcd_i2c.lcd_string(line[0], lcd_i2c.LCD_LINE_1)
             lcd_i2c.lcd_string(line[1], lcd_i2c.LCD_LINE_2)
-            gevent.sleep(2)
+            gevent.sleep(4)
         pass;
-
-        choice = get_keyboard_entry(keyboard_obj, "Select choice: ", 1)
+        gevent.sleep(3)
+        choice = get_keyboard_entry(keyboard_obj, "Enter choice:", 1)
 
         if(choice == '1'):
-            return True
+            return False #present choice
         elif(choice == '2'):
-            return False
+            return True #past choice
 
 def play(keyboard_obj):
 
@@ -164,11 +186,14 @@ def play(keyboard_obj):
     else:
         gevent.with_timeout(BASE_STATION_VIDEO_TIMEOUT, play_video_for_new_user)
         lcd_i2c.display_on()
-        name = gevent.with_timeout(BASE_STATION_VIDEO_TIMEOUT, get_keyboard_entry, keyboard_obj, "Enter name:", 16)
+        name = gevent.with_timeout(BASE_STATION_TASK_TIMEOUT, get_keyboard_entry, keyboard_obj, "Enter your name:", 15)
         initial_choice_past = gevent.with_timeout(BASE_STATION_VIDEO_TIMEOUT, get_initial_choice, keyboard_obj)
         player = Player(name=name, uid=rfid_data["uid"], initial_choice_past=initial_choice_past)
         gevent.with_timeout(BASE_STATION_TASK_TIMEOUT, update_rfid_card, player)
-        gevent.with_timeout(BASE_STATION_VIDEO_TIMEOUT, add_or_update_player, player)
+        gevent.with_timeout(BASE_STATION_TASK_TIMEOUT, add_or_update_player, player)
+        lcd_i2c.lcd_string("Refer to map to", lcd_i2c.LCD_LINE_1)
+        lcd_i2c.lcd_string("continue journey", lcd_i2c.LCD_LINE_2)
+        gevent.sleep(5)
 
 
     lcd_i2c.display_off()

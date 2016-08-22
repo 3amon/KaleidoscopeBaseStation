@@ -26,4 +26,4 @@ def choose_video(player):
     return user_video
 
 def play_video(path):
-    call([OMX_PLAYER_PATH, path])
+    call([OMX_PLAYER_PATH, path, '-o', 'local'])

@@ -9,6 +9,7 @@ import puzzle_rfid
 from config import config
 import keyboard
 import os
+from arduinoSerial import ser
 
 # Constants
 DEBUG_MODE = 1
@@ -76,7 +77,9 @@ def play_video_for_user(player):
     if config["debug"]:
         print "Playing video : " + video.choose_video(player)["name"]
     else:
+        ser.write(b"O")
         video.play_video(video.choose_video(player)["path"])
+        ser.write(b"F")
 
 def check_win_condition(player):
     if(player.get_puzzle_count() >= config["puzzle_win_treshold"]):
@@ -129,7 +132,9 @@ def play_video_for_new_user():
     if config["debug"]:
         print "Playing video : " + video.choose_video(None)["name"]
     else:
+        ser.write(b"O")
         video.play_video(video.choose_video(None)["path"])
+        ser.write(b"F")
 
 def get_initial_choice(keyboard_obj):
     lines = [
